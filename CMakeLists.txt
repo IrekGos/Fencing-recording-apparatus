@@ -17,6 +17,8 @@ endif()
 # Initialize the SDK
 pico_sdk_init()
 
+add_subdirectory(src)
+
 add_subdirectory(apps)
 
 add_compile_options(-Wall

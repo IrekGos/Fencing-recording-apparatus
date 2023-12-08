@@ -1,0 +1,3 @@
+add_library(score_display score_display.c)
+
+target_link_libraries(score_display pico_stdlib hardware_spi)
