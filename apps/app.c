@@ -21,20 +21,7 @@ volatile bool hit_left_jacket;
 volatile bool hit_from_right_weapon;
 volatile bool hit_right_jacket;
 
-struct repeating_timer signal_hit_timer;
-
 void toggle(uint gpio) { gpio_put(gpio, !gpio_get(gpio)); }
-
-bool repeating_timer_callback(struct repeating_timer *timer) {
-    toggle(SPEAKER);
-    if ((u_int32_t)timer->user_data-- == 0) cancel_repeating_timer(timer);
-    return true;
-}
-
-void tone(uint32_t step, uint32_t delay, struct repeating_timer *timer) {
-    add_repeating_timer_us(step, repeating_timer_callback, (void *)delay,
-                           timer);
-}
 
 void TONE(uint32_t step, uint32_t delay) {
     for (uint16_t i = 0; i < (uint32_t)1000 * (delay) / (step); i++) {
