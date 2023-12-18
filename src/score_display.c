@@ -1,4 +1,4 @@
-#include "../include/score_display.h"
+#include "score_display.h"
 
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
