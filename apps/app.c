@@ -2,6 +2,7 @@
 
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
+#include "speaker.h"
 
 #define RIGHT_WEAPON_PIN 6
 #define RIGHT_JACKET_PIN 7
@@ -13,22 +14,11 @@
 #define LEFT_RED_LED 12
 #define LEFT_YELLOW_LED 13
 
-#define SPEAKER 15
-
 volatile bool hit;
 volatile bool hit_from_left_weapon;
 volatile bool hit_left_jacket;
 volatile bool hit_from_right_weapon;
 volatile bool hit_right_jacket;
-
-void toggle(uint gpio) { gpio_put(gpio, !gpio_get(gpio)); }
-
-void TONE(uint32_t step, uint32_t delay) {
-    for (uint16_t i = 0; i < (uint32_t)1000 * (delay) / (step); i++) {
-        toggle(SPEAKER);
-        busy_wait_us(step);
-    }
-}
 
 void check_hit(uint gpio) {
     switch (gpio) {
@@ -73,7 +63,7 @@ void signal_hit(void) {
         hit_right_jacket = false;
     add_alarm_in_ms(1500, turn_off_leds_callback, NULL, false);
     add_alarm_in_ms(1500, enable_hits_callback, NULL, false);
-    TONE(400, 1200);
+    tone(400, 1200);
 }
 
 int64_t signal_hit_callback(alarm_id_t id, void *user_data) {
