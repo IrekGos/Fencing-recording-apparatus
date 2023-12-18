@@ -3,6 +3,7 @@
 #include "gpio_wrappers.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
+#include "score_display.h"
 #include "speaker.h"
 #include "time_display.h"
 
@@ -120,6 +121,9 @@ int main() {
 
     time_display_init();
     reset_time();
+
+    score_display_init();
+    reset_score();
 
     // Wait forever
     while (1) {
