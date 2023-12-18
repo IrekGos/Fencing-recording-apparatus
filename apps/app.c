@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "gpio_wrappers.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
 #include "speaker.h"
@@ -84,25 +85,7 @@ void gpio_callback(uint gpio, uint32_t events) {
     check_hit(gpio);
 }
 
-void gpio_out_init(uint gpio) {
-    gpio_init(gpio);
-    gpio_set_dir(gpio, GPIO_OUT);
-}
-
-void gpio_in_init(uint gpio) {
-    gpio_init(gpio);
-    gpio_set_dir(gpio, GPIO_IN);
-    gpio_pull_down(gpio);
-}
-
-void external_interrupt_init(uint gpio, uint32_t mask) {
-    gpio_in_init(gpio);
-    gpio_set_irq_enabled_with_callback(gpio, mask, true, &gpio_callback);
-}
-
-int main() {
-    stdio_init_all();
-
+void all_gpio_init(void) {
     gpio_out_init(LEFT_YELLOW_LED);
     gpio_out_init(LEFT_RED_LED);
     gpio_out_init(RIGHT_YELLOW_LED);
@@ -112,9 +95,17 @@ int main() {
 
     gpio_in_init(LEFT_JACKET_PIN);
     gpio_in_init(RIGHT_JACKET_PIN);
+}
 
-    external_interrupt_init(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW);
-    external_interrupt_init(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW);
+int main() {
+    stdio_init_all();
+
+    all_gpio_init();
+
+    external_interrupt_init(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
+                            &gpio_callback);
+    external_interrupt_init(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
+                            &gpio_callback);
 
     // Wait forever
     while (1) {
