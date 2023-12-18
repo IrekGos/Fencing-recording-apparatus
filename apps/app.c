@@ -4,6 +4,7 @@
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
 #include "speaker.h"
+#include "time_display.h"
 
 #define RIGHT_WEAPON_PIN 6
 #define RIGHT_JACKET_PIN 7
@@ -20,6 +21,16 @@ volatile bool hit_from_left_weapon;
 volatile bool hit_left_jacket;
 volatile bool hit_from_right_weapon;
 volatile bool hit_right_jacket;
+
+void enable_hits(void) {
+    gpio_set_irq_enabled(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, true);
+    gpio_set_irq_enabled(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, true);
+}
+
+void disable_hits(void) {
+    gpio_set_irq_enabled(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, false);
+    gpio_set_irq_enabled(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, false);
+}
 
 void check_hit(uint gpio) {
     switch (gpio) {
@@ -45,8 +56,7 @@ int64_t turn_off_leds_callback(alarm_id_t id, void *user_data) {
 }
 
 int64_t enable_hits_callback(alarm_id_t id, void *user_data) {
-    gpio_set_irq_enabled(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, true);
-    gpio_set_irq_enabled(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW, true);
+    enable_hits();
     // Can return a value here in us to fire in the future
     return 0;
 }
@@ -68,6 +78,7 @@ void signal_hit(void) {
 }
 
 int64_t signal_hit_callback(alarm_id_t id, void *user_data) {
+    if (!is_one_second_timer_stopped()) stop_one_second_timer();
     hit = false;
     signal_hit();
     // Can return a value here in us to fire in the future
@@ -106,6 +117,9 @@ int main() {
                             &gpio_callback);
     external_interrupt_init(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
                             &gpio_callback);
+
+    time_display_init();
+    reset_time();
 
     // Wait forever
     while (1) {
