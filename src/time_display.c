@@ -45,7 +45,7 @@ void time_display_init(void) {
 }
 
 void reset_time(void) {
-    start_one_second_timer();
+    stop_one_second_timer();
     minutes = 3, seconds = 0;
     TM1637_display_both(minutes, seconds, true);
 }
