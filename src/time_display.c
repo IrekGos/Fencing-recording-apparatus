@@ -32,7 +32,7 @@ bool one_second_timer_callback(struct repeating_timer *timer) {
         minutes--;
         TM1637_display_both(minutes, seconds, true);
     } else {
-        tone(400, 1200);
+        if (!is_muted()) tone(400, 1200);
         stop_one_second_timer();
     }
     // return true to continue repeating

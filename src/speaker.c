@@ -1,6 +1,10 @@
 #include "speaker.h"
 
-#include "pico/stdlib.h"
+volatile bool muted;
+
+bool is_muted(void) { return muted; }
+
+void mute_unmute(void) { muted = !muted; }
 
 void toggle(uint gpio) { gpio_put(gpio, !gpio_get(gpio)); }
 

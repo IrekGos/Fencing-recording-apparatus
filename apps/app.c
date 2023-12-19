@@ -75,7 +75,7 @@ void signal_hit(void) {
         hit_right_jacket = false;
     add_alarm_in_ms(1500, turn_off_leds_callback, NULL, false);
     add_alarm_in_ms(1500, enable_hits_callback, NULL, false);
-    tone(400, 1200);
+    if (!is_muted()) tone(400, 1200);
 }
 
 int64_t signal_hit_callback(alarm_id_t id, void *user_data) {
