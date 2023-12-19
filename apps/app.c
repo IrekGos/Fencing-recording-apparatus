@@ -52,13 +52,13 @@ int64_t turn_off_leds_callback(alarm_id_t id, void *user_data) {
     uint32_t mask = 1 << LEFT_RED_LED | 1 << RIGHT_GREEN_LED |
                     1 << RIGHT_YELLOW_LED | 1 << LEFT_YELLOW_LED;
     gpio_clr_mask(mask);
-    // Can return a value here in us to fire in the future
+    // return 0 to not reschedule the alarm
     return 0;
 }
 
 int64_t enable_hits_callback(alarm_id_t id, void *user_data) {
     enable_hits();
-    // Can return a value here in us to fire in the future
+    // return 0 to not reschedule the alarm
     return 0;
 }
 
@@ -82,7 +82,7 @@ int64_t signal_hit_callback(alarm_id_t id, void *user_data) {
     if (!is_one_second_timer_stopped()) stop_one_second_timer();
     hit = false;
     signal_hit();
-    // Can return a value here in us to fire in the future
+    // return 0 to not reschedule the alarm
     return 0;
 }
 

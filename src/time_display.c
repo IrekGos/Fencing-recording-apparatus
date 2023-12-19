@@ -35,6 +35,7 @@ bool one_second_timer_callback(struct repeating_timer *timer) {
         tone(400, 1200);
         stop_one_second_timer();
     }
+    // return true to continue repeating
     return true;
 }
 
