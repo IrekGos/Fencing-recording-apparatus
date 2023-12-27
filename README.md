@@ -63,8 +63,6 @@ git clone --recurse-submodules https://github.com/IrekGos/Fencing-recording-appa
 ## Building
 
 ```
-mkdir build
-cd build
-cmake ..
-make -j4
+cmake -S . -B build
+cmake --build build --parallel
 ```
