@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "access_point.h"
 #include "gpio_wrappers.h"
 #include "hardware/gpio.h"
 #include "pico/stdlib.h"
@@ -125,8 +126,54 @@ int main() {
     score_display_init();
     reset_score();
 
+    TCP_SERVER_T *state = calloc(1, sizeof(TCP_SERVER_T));
+    if (!state) {
+        printf("failed to allocate state\n");
+        return 1;
+    }
+    printf("allocate state\n");
+
+    if (cyw43_arch_init()) {
+        printf("failed to initialise\n");
+        return 1;
+    }
+    printf("initialise cyw43\n");
+
+    const char *ap_name = "picow_test";
+#if 1
+    const char *password = "password";
+#else
+    const char *password = NULL;
+#endif
+
+    cyw43_arch_enable_ap_mode(ap_name, password, CYW43_AUTH_WPA2_AES_PSK);
+
+    ip4_addr_t mask;
+    IP4_ADDR(ip_2_ip4(&state->gw), 192, 168, 4, 1);
+    IP4_ADDR(ip_2_ip4(&mask), 255, 255, 255, 0);
+
+    // Start the dhcp server
+    dhcp_server_t dhcp_server;
+    dhcp_server_init(&dhcp_server, &state->gw, &mask);
+
+    // Start the dns server
+    dns_server_t dns_server;
+    dns_server_init(&dns_server, &state->gw);
+
+    if (!tcp_server_open(state, ap_name)) {
+        printf("failed to open server\n");
+        return 1;
+    }
+    printf("open TCP server\n");
+
     // Wait forever
     while (1) {
         tight_loop_contents();
     }
+
+    tcp_server_close(state);
+    dns_server_deinit(&dns_server);
+    dhcp_server_deinit(&dhcp_server);
+    cyw43_arch_deinit();
+    return 0;
 }

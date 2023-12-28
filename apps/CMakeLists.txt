@@ -5,7 +5,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     score_display
     speaker
     gpio_wrappers
-    time_display)
+    time_display
+    access_point)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(${CMAKE_PROJECT_NAME})
