@@ -19,13 +19,11 @@ endif()
 # Initialize the SDK
 pico_sdk_init()
 
-include(${PROJECT_SOURCE_DIR}/lib/TM1637-pico/PicoTM1637.cmake)
-
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
 add_subdirectory(src)
 add_subdirectory(apps)
-add_subdirectory(lib/access_point)
+add_subdirectory(lib)
 
 add_compile_options(-Wall
         -Wextra
