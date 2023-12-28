@@ -25,6 +25,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 
 add_subdirectory(src)
 add_subdirectory(apps)
+add_subdirectory(lib/access_point)
 
 add_compile_options(-Wall
         -Wextra
