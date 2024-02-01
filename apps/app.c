@@ -196,12 +196,14 @@ int main() {
                 mute_unmute();
                 break;
             case RESET_TIME:
+                enable_hits();
                 reset_time();
                 break;
             case RESET_SCORE:
                 reset_score();
                 break;
             case ONE_MINUTE_BREAK:
+                disable_hits();
                 one_minute_break();
                 break;
             case LEFT_SCORE_UP:

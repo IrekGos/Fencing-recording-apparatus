@@ -54,4 +54,5 @@ void reset_time(void) {
 void one_minute_break(void) {
     minutes = 1, seconds = 0;
     TM1637_display_both(minutes, seconds, true);
+    start_one_second_timer();
 }
