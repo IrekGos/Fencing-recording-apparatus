@@ -110,32 +110,18 @@ void all_gpio_init(void) {
     gpio_in_init(RIGHT_JACKET_PIN);
 }
 
-int main() {
-    stdio_init_all();
-
-    all_gpio_init();
-
-    external_interrupt_init(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
-                            &gpio_callback);
-    external_interrupt_init(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
-                            &gpio_callback);
-
-    time_display_init();
-    reset_time();
-
-    score_display_init();
-    reset_score();
-
-    TCP_SERVER_T *state = calloc(1, sizeof(TCP_SERVER_T));
+bool wifi_init(TCP_SERVER_T *state, dns_server_t *dns_server,
+               dhcp_server_t *dhcp_server) {
+    state = calloc(1, sizeof(TCP_SERVER_T));
     if (!state) {
         printf("failed to allocate state\n");
-        return 1;
+        return false;
     }
     printf("allocate state\n");
 
     if (cyw43_arch_init()) {
         printf("failed to initialise\n");
-        return 1;
+        return false;
     }
     printf("initialise cyw43\n");
 
@@ -153,27 +139,91 @@ int main() {
     IP4_ADDR(ip_2_ip4(&mask), 255, 255, 255, 0);
 
     // Start the dhcp server
-    dhcp_server_t dhcp_server;
-    dhcp_server_init(&dhcp_server, &state->gw, &mask);
+    dhcp_server_init(dhcp_server, &state->gw, &mask);
 
     // Start the dns server
-    dns_server_t dns_server;
-    dns_server_init(&dns_server, &state->gw);
+    dns_server_init(dns_server, &state->gw);
 
     if (!tcp_server_open(state, ap_name)) {
         printf("failed to open server\n");
-        return 1;
+        return false;
     }
     printf("open TCP server\n");
+    return true;
+}
+
+void wifi_deinit(TCP_SERVER_T *state, dns_server_t *dns_server,
+                 dhcp_server_t *dhcp_server) {
+    tcp_server_close(state);
+    dns_server_deinit(dns_server);
+    dhcp_server_deinit(dhcp_server);
+    cyw43_arch_deinit();
+}
+
+int main() {
+    stdio_init_all();
+
+    all_gpio_init();
+
+    external_interrupt_init(LEFT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
+                            &gpio_callback);
+    external_interrupt_init(RIGHT_WEAPON_PIN, GPIO_IRQ_LEVEL_LOW,
+                            &gpio_callback);
+
+    time_display_init();
+    reset_time();
+
+    score_display_init();
+    reset_score();
+
+    TCP_SERVER_T *state;
+    dns_server_t dns_server;
+    dhcp_server_t dhcp_server;
+    if (!wifi_init(state, &dns_server, &dhcp_server)) {
+        printf("failed to init WiFi access point\n");
+        return 1;
+    }
 
     // Wait forever
     while (1) {
-        tight_loop_contents();
+        switch (command) {
+            case NONE:
+                break;
+            case START_STOP:
+                start_stop_one_second_timer();
+                break;
+            case MUTE_UNMUTE:
+                mute_unmute();
+                break;
+            case RESET_TIME:
+                reset_time();
+                break;
+            case RESET_SCORE:
+                reset_score();
+                break;
+            case ONE_MINUTE_BREAK:
+                one_minute_break();
+                break;
+            case LEFT_SCORE_UP:
+                change_score(LEFT, UP);
+                break;
+            case LEFT_SCORE_DOWN:
+                change_score(LEFT, DOWN);
+                break;
+            case RIGHT_SCORE_UP:
+                change_score(RIGHT, UP);
+                break;
+            case RIGHT_SCORE_DOWN:
+                change_score(RIGHT, DOWN);
+                break;
+            default:
+                break;
+        }
+        if (command != NONE) command = NONE;
+        sleep_ms(1);
     }
 
-    tcp_server_close(state);
-    dns_server_deinit(&dns_server);
-    dhcp_server_deinit(&dhcp_server);
-    cyw43_arch_deinit();
+    wifi_deinit(state, &dns_server, &dhcp_server);
+
     return 0;
 }

@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+/*
+ * #defines, TCP_CONNECT_STATE_T_ and test_server_content() were modified by me
+ */
+
 #include "access_point.h"
 
 #include "lwip/pbuf.h"
@@ -17,24 +21,34 @@
 #define HTTP_RESPONSE_HEADERS                                       \
     "HTTP/1.1 %d OK\nContent-Length: %d\nContent-Type: text/html; " \
     "charset=utf-8\nConnection: close\n\n"
-#define LED_TEST_BODY                                               \
-    "<html><body><h1>Hello from Pico W.</h1><p>Led is %s</p><p><a " \
-    "href=\"?led=%d\">Turn led %s</a></body></html>"
-#define LED_PARAM "led=%d"
-#define LED_TEST "/ledtest"
-#define LED_GPIO 0
+#define HTTP_BODY \
+    "<html><body><h1>Fencing recording apparatus.</h1>      \
+    <h1><a href=\"?command=%d\">Start / Stop</a></h1>       \
+    <h1><a href=\"?command=%d\">Mute / Unmute</a></h1>      \
+    <h1><a href=\"?command=%d\">Reset time</a></h1>         \
+    <h1><a href=\"?command=%d\">Reset score</a></h1>        \
+    <h1><a href=\"?command=%d\">One minute break</a></h1>   \
+    <h1><a href=\"?command=%d\">Left score up</a></h1>      \
+    <h1><a href=\"?command=%d\">Left score down</a></h1>    \
+    <h1><a href=\"?command=%d\">Right score up</a></h1>     \
+    <h1><a href=\"?command=%d\">Right score down</a></h1>   \
+    </body></html>"
+#define URL_PARAM "command=%d"
+#define URL_PATH "/fencing"
 #define HTTP_RESPONSE_REDIRECT \
-    "HTTP/1.1 302 Redirect\nLocation: http://%s" LED_TEST "\n\n"
+    "HTTP/1.1 302 Redirect\nLocation: http://%s" URL_PATH "\n\n"
 
 typedef struct TCP_CONNECT_STATE_T_ {
     struct tcp_pcb *pcb;
     int sent_len;
     char headers[128];
-    char result[256];
+    char result[1024];
     int header_len;
     int result_len;
     ip_addr_t *gw;
 } TCP_CONNECT_STATE_T;
+
+Command command = NONE;
 
 static err_t tcp_close_client_connection(TCP_CONNECT_STATE_T *con_state,
                                          struct tcp_pcb *client_pcb,
@@ -81,33 +95,18 @@ static err_t tcp_server_sent(void *arg, struct tcp_pcb *pcb, u16_t len) {
 static int test_server_content(const char *request, const char *params,
                                char *result, size_t max_result_len) {
     int len = 0;
-    if (strncmp(request, LED_TEST, sizeof(LED_TEST) - 1) == 0) {
-        // Get the state of the led
-        bool value;
-        cyw43_gpio_get(&cyw43_state, LED_GPIO, &value);
-        int led_state = value;
-
-        // See if the user changed it
+    if (strncmp(request, URL_PATH, sizeof(URL_PATH) - 1) == 0) {
         if (params) {
-            int led_param = sscanf(params, LED_PARAM, &led_state);
-            if (led_param == 1) {
-                if (led_state) {
-                    // Turn led on
-                    cyw43_gpio_set(&cyw43_state, 0, true);
-                } else {
-                    // Turn led off
-                    cyw43_gpio_set(&cyw43_state, 0, false);
-                }
-            }
+            int param_value;
+            int url_param = sscanf(params, URL_PARAM, &param_value);
+            if (url_param == 1) command = param_value;
         }
+
         // Generate result
-        if (led_state) {
-            len =
-                snprintf(result, max_result_len, LED_TEST_BODY, "ON", 0, "OFF");
-        } else {
-            len =
-                snprintf(result, max_result_len, LED_TEST_BODY, "OFF", 1, "ON");
-        }
+        len =
+            snprintf(result, max_result_len, HTTP_BODY, START_STOP, MUTE_UNMUTE,
+                     RESET_TIME, RESET_SCORE, ONE_MINUTE_BREAK, LEFT_SCORE_UP,
+                     LEFT_SCORE_DOWN, RIGHT_SCORE_UP, RIGHT_SCORE_DOWN);
     }
     return len;
 }

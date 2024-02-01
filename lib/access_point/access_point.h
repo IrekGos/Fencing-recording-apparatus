@@ -19,6 +19,21 @@ typedef struct TCP_SERVER_T_ {
     async_context_t *context;
 } TCP_SERVER_T;
 
+typedef enum {
+    NONE,
+    START_STOP,
+    MUTE_UNMUTE,
+    RESET_TIME,
+    RESET_SCORE,
+    ONE_MINUTE_BREAK,
+    LEFT_SCORE_UP,
+    LEFT_SCORE_DOWN,
+    RIGHT_SCORE_UP,
+    RIGHT_SCORE_DOWN
+} Command;
+
+extern Command command;
+
 bool tcp_server_open(void *, const char *);
 void tcp_server_close(TCP_SERVER_T *);
 
